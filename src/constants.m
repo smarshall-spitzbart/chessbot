@@ -1,0 +1,11 @@
+IX = 1;
+IY = 2;
+IZ = 3;
+IP = 4;
+IR = 5;
+Pawn = 1;
+Rook = 2;
+Knight = 3;
+Bishop = 4;
+King = 5;
+Queen = 6;
