@@ -1,0 +1,7 @@
+%Calibration
+function CallibrationSZ(r,c);
+if r == 1 && c == 1
+    GameBoard = {ScorGetXYZPR};
+else
+    GameBoard{r,c}= ScorGetXYZPR;
+end
