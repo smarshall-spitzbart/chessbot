@@ -1,0 +1,13 @@
+Gamesettings=struct()
+Gamesettings.Z1.diameter=24.7
+Gamesettings.Z1.height=48.8
+Gamesettings.Z2.diameter=12.4
+Gamesettings.Z2.height=53.0
+Gamesettings.Z3.diameter=19.3
+Gamesettings.Z3.height=53.0
+Gamesettings.Z4.diameter=24.4
+Gamesettings.Z4.height=69.0
+Gamesettings.Z5.diameter=25.0
+Gamesettings.Z5.height=64.9
+Gamesettings.Z6.diameter=18.3
+Gamesettings.Z6.height=43.7
