@@ -1,3 +1,4 @@
+function Chessboard = ResetChessboard()
 Chessboard=struct();
 Chessboard.A1.piece=1;
 Chessboard.A2.piece=6;
@@ -127,4 +128,5 @@ Chessboard.H5.color=0;
 Chessboard.H6.color=0;
 Chessboard.H7.color=2;
 Chessboard.H8.color=2;
-save('Chessboard');
+Chessboard.graveyard.color=0;
+Chessboard.graveyard.piece=0;
