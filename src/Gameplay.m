@@ -13,8 +13,8 @@ elseif Chessboard.(new).color==Chessboard.(old).color
     fprintf('Error: You cannot do that');
     return
 else
-   [~,~]=MovePawn(new,genvarname('graveyard'),Chessboard,Gameboard,Gamesettings);
-   [~,~]=MovePawn(old,new,Chessboard,Gameboard,Gamesettings);
+   [~]=MovePawn(new,genvarname('graveyard'),Chessboard,Gameboard,Gamesettings);
+   [~]=MovePawn(old,new,Chessboard,Gameboard,Gamesettings);
    Chessboard.(new).piece=Chessboard.(old).piece;
    Chessboard.(old).piece=0;
 end

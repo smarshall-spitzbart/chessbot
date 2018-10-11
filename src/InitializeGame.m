@@ -7,5 +7,5 @@ Gamesettings = temp.Gamesettings;
 Chessboard = ResetChessboard();
 
 
-
+%[Gameboard, Gamesettings, Chessboard]  =  InitializeGame('Gameboard2', 'Gamesettings')
 
