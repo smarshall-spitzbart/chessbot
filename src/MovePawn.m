@@ -1,15 +1,17 @@
 %%Moves a piece from one space to another.
 
 function [confirm] = MovePawn(old,new,Chessboard,Gameboard,Gamesettings)
-%Set the location of the old piece as  
+%Set the location of the robot to x,y position of the old piece 200 mm above the board.  
 stop1=[Gameboard.(old).xyz(1) Gameboard.(old).xyz(2) Gameboard.(old).xyz(3)+200 ...
     Gameboard.(old).xyz(4) Gameboard.(old).xyz(5)];
 ScorSetXYZPR(stop1);
+%Establish which piece you're trying to move.
 piecenumber=Chessboard.(old).piece;
+%Set a parameter for the diameter of the piece.
 x=Gamesettings(piecenumber,1);
-%Diameter of each piece is in column 1
 ScorWaitForMove;
-ScorSetGripper(x+3);
+%Set the gripper to a little bit larger than the piece diameter.
+ScorSetGripper(x+5);
 pick1=[Gameboard.(old).xyz(1) Gameboard.(old).xyz(2) Gameboard.(old).xyz(3)+Gamesettings(piecenumber,2) ...
     Gameboard.(old).xyz(4) Gameboard.(old).xyz(5)];
 ScorWaitForMove;
@@ -31,7 +33,8 @@ ScorWaitForMove;
 ScorSetGripper(x+3);
 ScorWaitForMove;
 ScorSetXYZPR(stop2);
-ScorWaitForMove;
-ScorGoHome;
+%ScorWaitForMove;
+%ScorGoHome;
 
 confirm=true
+%}
