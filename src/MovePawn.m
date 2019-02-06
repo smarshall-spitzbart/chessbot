@@ -29,10 +29,11 @@ pick2=[Gameboard.(new).xyz(1) Gameboard.(new).xyz(2) Gameboard.(new).xyz(3)+Game
     Gameboard.(new).xyz(4) Gameboard.(new).xyz(5)];
 ScorWaitForMove;
 ScorSetXYZPR(pick2);
-%Shawn
 ScorWaitForMove;
 ScorSetGripper(x+3);
 ScorWaitForMove;
+%Shawn will add CorrectPosition command here, possibly will move to
+%after the bot has moved up 200mm
 ScorSetXYZPR(stop2);
 %ScorWaitForMove;
 %ScorGoHome;
