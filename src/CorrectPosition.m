@@ -1,24 +1,37 @@
 %Detects location of chess piece after it has been placed and gripper has
 %been released (see MovePawn function)
 
+function [confirm] = CorrectPosition(new,Chessboard,Gameboard,Gamesettings)
+
 %Setting up webcam, will need to be moved to separate function, possibly
 %InitializeGame function??%
 
 %use delete(cam) in command line if already registered
 cam = webcam('HD Pro Webcam C920');
-%cam.FocusMode = 'auto';
-cam.FocusMode = 'manual';
-cam.Focus = 0;
+cam.FocusMode = 'auto';
+% cam.FocusMode = 'manual';
+% cam.Focus = 45; %NOTE: Closest camera focus is not 0, it is 125, medium range is around 30
 I = snapshot(cam);
+% I = im2bw(I,0.45); %detectcheckerboard is meant for BW board
 
 %Detect board corners
 
-[imagePoints,boardSize,imagesUsed] = detectCheckerboardPoints(I);%,'MinCornerMetric', 0.14);
+%Detect using detectCheckerboardPoints function, (needs to see at least a 4x4 checkerboard)
+[imagePoints,boardSize,imagesUsed] = detectCheckerboardPoints(I);
 
-%Plot for board detection testing purposes
+% Plot for board detection testing purposes
 imshow(I)
 hold on
 plot(imagePoints(:, 1, 1, 1),imagePoints(:, 2, 1, 1),'g*','MarkerSize',10);
+
+
+
+% %or Using MATLAB edge functions (still more work needs to be done)
+% 
+% I = rgb2gray(I);
+% Iedges = edge(I,'Prewitt');
+% imshow(Iedges)
+
 
 % %Detect Chess piece Dots
 % 
@@ -97,5 +110,7 @@ plot(imagePoints(:, 1, 1, 1),imagePoints(:, 2, 1, 1),'g*','MarkerSize',10);
 % blue_point_4 = [centroidsB(3,1); centroidsB(3,2)];
 % red_point_4 = [centroidsR(4,1); centroidsR(4,2)];
 % top_right_dist = norm(blue_point_4 - red_point_4)
+
+confirm=true
 
 
