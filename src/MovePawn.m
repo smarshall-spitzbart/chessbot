@@ -2,9 +2,12 @@
 
 function [confirm] = MovePawn(old,new,Chessboard,Gameboard,Gamesettings)
 %Set the location of the robot to x,y position of the old piece 200 mm above the board.  
-stop1=[Gameboard.(old).xyz(1) Gameboard.(old).xyz(2) Gameboard.(old).xyz(3)+200 ...
+stop1 = [Gameboard.(old).xyz(1) Gameboard.(old).xyz(2) Gameboard.(old).xyz(3)+200 ...
     Gameboard.(old).xyz(4) Gameboard.(old).xyz(5)];
 ScorSetXYZPR(stop1);
+%Shawn's Code
+%
+%
 %Establish which piece you're trying to move.
 piecenumber=Chessboard.(old).piece;
 %Set a parameter for the diameter of the piece.

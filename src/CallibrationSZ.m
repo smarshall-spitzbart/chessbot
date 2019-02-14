@@ -3,10 +3,10 @@
 %load('GameBoard')
 %GameBoard{r,c}= ScorGetXYZPR
 %end
-function Gameboard1=CallibrationSZ(r,c)
-Gameboard1.xyz=ScorGetXYZPR;
-Gameboard1.joints=ScorGetBSEPR;
-Gameboard1.pose=ScorGetPose;
-Gameboard1.gripper=ScorGetGripper;
-Gameboard1.speed=ScorGetSpeed;
+function MasterGameboard=Mark(var)
+Gameboard.var.xyz=ScorGetXYZPR;
+Gameboard.var.joints=ScorGetBSEPR;
+Gameboard.var.pose=ScorGetPose;
+Gameboard.var.gripper=ScorGetGripper;
+Gameboard.var.speed=ScorGetSpeed;
 end
