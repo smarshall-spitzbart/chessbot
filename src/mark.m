@@ -1,8 +1,5 @@
-function MasterGameboard=mark(text,MasterGameboard)
+function Board_Locations=mark(text,Board_Locations)
 var = genvarname(text);
-MasterGameboard.(var).xyz=ScorGetXYZPR;
-MasterGameboard.(var).joints=ScorGetBSEPR;
-MasterGameboard.(var).pose=ScorGetPose;
-MasterGameboard.(var).gripper=ScorGetGripper;
-MasterGameboard.(var).speed=ScorGetSpeed;
+Board_Locations.(var).xyz=ScorGetXYZPR;
+Board_Locations.(var).joints=ScorGetBSEPR;
 end
