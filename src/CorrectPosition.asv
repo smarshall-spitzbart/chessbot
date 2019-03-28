@@ -55,8 +55,8 @@ for i = 1:length(lines)
         linInd = sub2ind(size(Iedges), ycomp, xcomp);
         Sum(linInd) = Sum(linInd) + 1;      
 end
-[intersect_y,intersect_x] = find(Sum == 2);
-plot(intersect_x,intersect_y, 'g*');
+[intersect_x,intersect_y] = find(Sum == 2);
+plot(intersect_y,intersect_x, 'g*');
 
 %% Detect Chess piece Dots
 
@@ -99,25 +99,17 @@ StickerTL = [centroidsR(1,1); centroidsR(1,2)];
 % Define top right sticker centroid
 StickerTR = [centroidsR(2,1); centroidsR(2,2)];
 
-% Current config = arbitrary, need to define heights and board spots
-
-% Define approprite top left board corner
-BoardTL = [intersect_x(12);intersect_y(12)];
-
-% Define appropriate top right board corner
-BoardTR = [intersect_x(19);intersect_y(19)];
-
 % Calculate distances from sticker centroid to appropriate corners
+% NOTE: board points are indexed starting top left, moving downward
 
-TLDIST = norm(BoardTL - StickerTL)
-TRDIST = norm(BoardTR - StickerTR)
+TLDIST = norm(blue_point_1 - RTL)
+TRDIST = norm(blue_point_2 - RTR)
 
 plot(StickerTL(1),StickerTL(2),'g*')
 plot(StickerTR(1),StickerTR(2),'g*')
 
-% Board corner indexing test % NOTE: board points are indexed starting top
-% left, moving downward. But can be funky sometimes
-% plot(intersect_x(19),intersect_y(19), 'm*','MarkerSize',20);
+% Board corner indexing test
+plot(intersect_y(13),intersect_x(13), 'm*','MarkerSize',20);
 
 confirm=true
 
