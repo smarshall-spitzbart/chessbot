@@ -42,4 +42,4 @@ ScorSetXYZPR(stop2);
 %ScorGoHome;
 
 confirm=true
-%}
+%
