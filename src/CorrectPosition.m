@@ -68,7 +68,8 @@ Blue = I(:,:,3);
 % purposes)
 % a = impixel(I)
 
-% define color levels for red stickers
+% define color levels for red stickers (needs adjustments for different
+% rooms/lighting/robot arm height)
 outputR = Red > 120 & Red < 150 & Green > 10 & Green < 40 & Blue > 30 & Blue < 50;
 
 % cropping tool
