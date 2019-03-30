@@ -9,13 +9,14 @@ function [confirm] = CorrectPosition(new,Chessboard,Gameboard,Gamesettings)
 % use delete(cam) in command line if already registered
 cam = webcam('HD Pro Webcam C920');
 
-% cam.FocusMode = 'auto';
-cam.FocusMode = 'manual';
-cam.Focus = 10; 
+cam.FocusMode = 'auto';
+% cam.FocusMode = 'manual';
+% cam.Focus = 10; 
 
 % NOTE: Closest camera focus is not 0, it is 125, medium range is around 30
 % 10 or 15 is good focus for current elevated plane in movepawn
 I = snapshot(cam);
+figure(1), imshow(I)
 
 %% Detect board corners
 
@@ -24,7 +25,7 @@ Igray = rgb2gray(I);
 Iedges = edge(Igray,'Sobel');
 
 % Original line image
-figure(1), imshow(Iedges)
+figure(2), imshow(Iedges)
 hold on
 
 % Detect Lines by hough transform
