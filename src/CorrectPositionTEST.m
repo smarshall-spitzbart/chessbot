@@ -1,7 +1,7 @@
-% Detects location of chess piece after it has been placed and gripper has
-% been released (see MovePawn function)
+% Duplicate of CorrectPosition Function, optimized for board position D3
+% for testing purposes
 
-function [confirm] = CorrectPosition(new,Chessboard,Gameboard,Gamesettings)
+%%
 
 % Setting up webcam, will need to be moved to separate function, possibly
 % InitializeGame function
@@ -52,7 +52,7 @@ for i = 1:length(lines)
     ycomp = interp1([x1 x2],[y1 y2], xcomp);
     xcomp = round(xcomp);
     ycomp = round(ycomp);
-        
+    
     for n = 1:length(xcomp)
         xcompstore(i,n) = xcomp(n);
         ycompstore(i,n) = ycomp(n);
@@ -116,16 +116,40 @@ BoardTR = [intersect_x(19);intersect_y(19)];
 
 % Calculate distances from sticker centroid to appropriate corners
 
-TLDIST = norm(BoardTL - StickerTL)
-TRDIST = norm(BoardTR - StickerTR)
+% TLDIST = norm(BoardTL - StickerTL)
+% TRDIST = norm(BoardTR - StickerTR)
 
-plot(StickerTL(1),StickerTL(2),'g*')
-plot(StickerTR(1),StickerTR(2),'g*')
+plot(StickerTL(1),StickerTL(2),'b*')
+plot(StickerTR(1),StickerTR(2),'b*')
 
 % Board corner indexing test % NOTE: board points are indexed starting top
 % left, moving downward. But can be funky sometimes
 % plot(intersect_x(19),intersect_y(19), 'm*','MarkerSize',20);
 
-confirm=true
+%% Calculating distances of chess piece from predefined lines
+% to plot line in front of D3 see below
+% plot(xcompstore(1,:),ycompstore(1,:),'g*')
 
+% to plot line to right of D3 see below
+% plot(xcompstore(8,:),ycompstore(8,:),'g*')
 
+% Obtains distances from sticker centers to board lines
+for i = 1:length(xcompstore)
+    dist1(i) = sqrt((xcompstore(8,i)-StickerTR(1))^2+(ycompstore(8,i)-StickerTR(2))^2);
+end
+TR_topline = min(dist1)
+
+for i = 1:length(xcompstore)
+    dist2(i) = sqrt((xcompstore(8,i)-StickerTL(1))^2+(ycompstore(8,i)-StickerTL(2))^2);
+end
+TL_topline = min(dist2)
+
+for i = 1:length(xcompstore)
+    dist3(i) = sqrt((xcompstore(1,i)-StickerTR(1))^2+(ycompstore(1,i)-StickerTR(2))^2);
+end
+TR_rightline = min(dist3)
+
+for i = 1:length(xcompstore)
+    dist4(i) = sqrt((xcompstore(1,i)-StickerTL(1))^2+(ycompstore(1,i)-StickerTL(2))^2);
+end
+TL_rightline = min(dist4)
