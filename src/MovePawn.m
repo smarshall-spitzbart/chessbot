@@ -16,7 +16,7 @@ ScorWaitForMove;
 %Set the gripper to a little bit larger than the piece diameter.
 ScorSetGripper(x+5);
 %Move to location of desired point.
-pick1=[Gameboard.(old).xyz(1) Gameboard.(old).xyz(2) Gameboard.(old).xyz(3)+Gamesettings(piecenumber,2) ...
+pick1=[Gameboard.(old).xyz(1) Gameboard.(old).xyz(2) Gameboard.(old).xyz(3)+Gamesettings(piecenumber,2)-2 ...
     Gameboard.(old).xyz(4) Gameboard.(old).xyz(5)];
 ScorWaitForMove;
 ScorSetXYZPR(pick1);

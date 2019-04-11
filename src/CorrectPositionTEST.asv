@@ -167,10 +167,6 @@ imshow(crop)
 size = size(xcompstore);
 for i = 1:size(1)
     for n = 1:size(2)
-        if [xcompstore(i,n)] < [189.51] | [ycompstore(i,n)] < [114.51]
-            [xcompstore(i,n),ycompstore(i,n)] = [0,0];
-        else [xcompstore(i,n)] > [189.51+239.9800] | [ycompstore(i,n)] > [114.51+230.9800]
-            [xcompstore(i,n),ycompstore(i,n)] = [0,0];
-        end
+        if [xcompstore(i,n),ycompstore(i,n)]
     end
 end
