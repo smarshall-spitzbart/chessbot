@@ -1,4 +1,5 @@
 function [Gameboard, Gamesettings, Chessboard]  =  InitializeGame(filename_Gameboard, filename_Gamesettings)
+load('Board_Locations.mat');
 
 temp = load(filename_Gameboard,'Board_Locations');
 Gameboard = temp.Board_Locations;
