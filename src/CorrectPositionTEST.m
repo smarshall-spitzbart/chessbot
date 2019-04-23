@@ -1,5 +1,8 @@
-% Duplicate of CorrectPosition Function, optimized for board position D3
+% Duplicate of CorrectPosition Function, optimized to board position D3
 % for testing purposes
+
+% In actual function 'new' will be an input variable
+new = 'D3';
 
 %%
 
@@ -240,11 +243,15 @@ outputR = Red > 120 & Red < 150 & Green > 10 & Green < 40 & Blue > 30 & Blue < 5
 % cropping tool
 % [J, rect] = imcrop(I);
 
-% Set cropping of image to define the piece we care about
-% Rcrop = imcrop(outputR,[2318 1107 804 870]); %[xmin ymin width height]
+% Set cropping of red sticker detection to define the piece we care about
+% Note, this cropping only allows for correction within the board square.
+Rcrop = imcrop(outputR,[min(IntersectBL(1),IntersectTL(1)),...
+    min(IntersectTL(2),IntersectTR(2)), max(IntersectTR(1),IntersectBR(1))...
+    - (min(IntersectBL(1),IntersectTL(1))), max(IntersectBR(2),IntersectBL(2))...
+    - (min(IntersectTL(2),IntersectTR(2)))]); %[xmin ymin width height]
 
 % filter image
-outputR2 = imfill(outputR,'holes');
+outputR2 = imfill(Rcrop,'holes');
 outputR3 = bwmorph(outputR2,'dilate',3);
 
 % Caculate/display centroids for each sticker type
@@ -252,9 +259,9 @@ statsR = regionprops(outputR3);
 
 centroidsR = cat(1, statsR.Centroid);
 
-% Correct for cropping of red channel (if needed)
-% centroidsR(:,1) = centroidsR(:,1) + 2318;
-% centroidsR(:,2) = centroidsR(:,2) + 1107;
+% Correct for cropping of red channel
+centroidsR(:,1) = centroidsR(:,1) + min(IntersectBL(1),IntersectTL(1));
+centroidsR(:,2) = centroidsR(:,2) + min(IntersectTL(2),IntersectTR(2));
 
 % Define top left sticker centroid
 StickerTL = [centroidsR(1,1); centroidsR(1,2)];
@@ -265,49 +272,51 @@ StickerTR = [centroidsR(2,1); centroidsR(2,2)];
 hold on
 plot(StickerTL(1),StickerTL(2),'r*')
 plot(StickerTR(1),StickerTR(2),'r*')
-%% Calculate distances
 
-% Define approprite top left board corner
-% BoardTL = [intersect_x(12);intersect_y(12)];
+%% Find relavent locations of stickers referenced from board corners using bilinear interp
 
-% Define appropriate top right board corner
-% BoardTR = [intersect_x(19);intersect_y(19)];
+% could transform the image of the board square into a perfect square, but will instead use
+% bilinear interp for an arbitrary quadrilateral
 
-% Calculate distances from sticker centroid to appropriate corners
+% Define the polygon in pixel cordinates, and each x,y cordinate...
+px = [IntersectBL(1), IntersectBR(1), IntersectTR(1), IntersectTL(1)];
+py = [IntersectBL(2), IntersectBR(2), IntersectTR(2), IntersectTL(2)];
 
-% TLDIST = norm(BoardTL - StickerTL)
-% TRDIST = norm(BoardTR - StickerTR)
+% Define points to convert to L,M coordinates (include px and py for
+% testing purposes)
+Xpixel = [px, StickerTL(1), StickerTR(1)];
+Ypixel = [py, StickerTL(2), StickerTR(2)];
 
-%% Calculating distances of chess piece from predefined lines
-% % to plot line in front of D3 see below
-% plot(xcompstore(1,:),ycompstore(1,:),'g*')
-% 
-% % to plot line to right of D3 see below
-% plot(xcompstore(8,:),ycompstore(8,:),'b*')
-% 
-% % Obtains distances from sticker centers to board lines
-% for i = 1:length(xcompstore)
-%     dist1(i) = sqrt((xcompstore(1,i)-StickerTR(1))^2+(ycompstore(1,i)-StickerTR(2))^2);
-% end
-% TR_topline = min(dist1)
-% 
-% for i = 1:length(xcompstore)
-%     dist2(i) = sqrt((xcompstore(1,i)-StickerTL(1))^2+(ycompstore(1,i)-StickerTL(2))^2);
-% end
-% TL_topline = min(dist2)
-% 
-% for i = 1:length(xcompstore)
-%     dist3(i) = sqrt((xcompstore(8,i)-StickerTR(1))^2+(ycompstore(8,i)-StickerTR(2))^2);
-% end
-% TR_rightline = min(dist3)
-% 
-% for i = 1:length(xcompstore)
-%     dist4(i) = sqrt((xcompstore(8,i)-StickerTL(1))^2+(ycompstore(8,i)-StickerTL(2))^2);
-% end
-% TL_rightline = min(dist4)
+% Y transformation
+imageheight = 640;
+Ypixel = imageheight - Ypixel;
+py = imageheight - py;
 
-%% where to go next?
+% Assume a bilinear mapping function, solve for alpha and beta coefficients
+A = [1 0 0 0;1 1 0 0;1 1 1 1;1 0 1 0];
+a = A\px';
+b = A\py';
 
-% put intersection code only within the lines that we care about. Then we
-% will have only the intersections we care about. Then use pixel iteration
-% and position iteration to define the chess piece's 'real' position within XYZPR 
+% Solving for L and M cordinates, we need quadratic equation coefficients,
+% aa*mm^2+bb*m+cc=0
+aa = a(4)*b(3) - a(3)*b(4);
+for i = 1:length(Xpixel)
+    bb = a(4)*b(1) -a(1)*b(4) + a(2)*b(3) - a(3)*b(2) + Xpixel(i)*b(4) - Ypixel(i)*a(4);
+    cc = a(2)*b(1) -a(1)*b(2) + Xpixel(i)*b(2) - Ypixel(i)*a(2);
+    
+    % Compute m = (-b+sqrt(b^2-4ac))/(2a)
+    det = sqrt(bb*bb - 4*aa*cc);
+    M(i) = (-bb+det)/(2*aa);
+    % Compute L
+    L(i) = (Xpixel(i)-a(1)-a(3)*M(i))/(a(2)+a(4)*M(i));
+end
+
+%% Define XYZPR Locations of stickers from L,M coordinates
+
+% In actual function, will have to identify these four XYZPR points from
+% structure rather than calling them out (alphabetical for loop?)
+
+XYZPRBL = Board_intersections.D3.xyz; % XYZPR BottomLeft
+XYZPRTL = Board_intersections.D4.xyz; % XYZPR TopLeft
+XYZPRBR = Board_intersections.E3.xyz; % XYZPR BottomRight
+XYZPRTR = Board_intersections.E4.xyz; % XYZPR TopRight
