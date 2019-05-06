@@ -342,24 +342,4 @@ for i = 1:5
     XYZPRSTICKERTR(i) = [1-L(6),L(6)-0]*[XYZPRBL(i),XYZPRTL(i);XYZPRBR(i),XYZPRTR(i)]*[1-M(6);M(6)-0];
 end
 
-% Define 
-
 %% Correct for chess piece placement
-
-
-%% Rotational correction in ref to top line
-
-% Find slopes, y axis is flipped here from MATLAB indexing
-SlopeStickers = -(StickerTR(2) - StickerTL(2))/(StickerTR(1) - StickerTL(1));
-SlopeCorners = -(IntersectTR(2) - IntersectTL(2))/(IntersectTR(1) - IntersectTL(1));
-
-if SlopeCorners - SlopeStickers > 0.1 % CCW correction needed
-    
-elseif SlopeCorners - SlopeStickers < 0.1 % CW correction needed
-    
-end
-
-
-%% determine whether or not piece is in 'correct spot' from [M,L] cords
-% 
-% if L(5) > 0.18 && L(5) < 0.22 

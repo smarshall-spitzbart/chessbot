@@ -1,5 +1,8 @@
+function Board_intersections = InterpolatingLines()
+
+
 %% Line points parallel to robots, ordered A-I alphabetically from board
-load('Board_Locations.mat')
+% load('Board_Locations.mat')
 
 % Line_Locations.parallel.A.xyz.first = [Board_Locations.A1.xyz(1:5)] - 0.5*[(Board_Locations.A2.xyz(1)-Board_Locations.A1.xyz(1)),(Board_Locations.B1.xyz(2)-Board_Locations.A1.xyz(2)), 0, 0, 0];
 Line_Locations.parallel.A.xyz.first = [168.5000  133.9590  115.8020 -1.5933    0.7162]; %manual adjustment
