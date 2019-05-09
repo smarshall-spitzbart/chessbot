@@ -1,29 +1,17 @@
-% Duplicate of CorrectPosition Function, optimized to board position D3
-% for testing purposes
-
-% In actual function 'new' will be an input variable
-new = 'D3';
-
-% In actual function, this will not be a thing either
-clc
-clear all
-close all
-[Gameboard, Gamesettings, Chessboard, Board_intersections]  =  InitializeGame('Board_Locations', 'Gamesettings')
-%%
-
-% Setting up webcam, will need to be moved to separate function, possibly
-% InitializeGame function
-
-% use delete(cam) in command line if already registered
+%% Process image function (Displacement)
+% Does not include any robot movement functions, only image processing
+% see 'CorrectPositionTEST' for combo of this function and CorrectPosition
+function [XYZPRPiece,XYZPRPieceIdeal,Piece_LM] = ProcessImageDisp(Chessboard,Gameboard,Gamesettings,Board_intersections,boardsquare)
+% cam needs to be called within function, MATLAB cannot import objects of
+% class 'camera'
 cam = webcam('HD Pro Webcam C920');
-
+I = snapshot(cam);
 % cam.FocusMode = 'auto';
 cam.FocusMode = 'manual';
 cam.Focus = 15; 
 % NOTE: Closest camera focus is not 0, it is 125, medium range is around 30
 % 05-25 is good focus for current elevated plane in movepawn
-I = snapshot(cam);
-figure(1), imshow(I)
+figure(3), imshow(I)
 
 %% Detect relevant edges and corners
 
@@ -32,7 +20,7 @@ Igray = rgb2gray(I);
 Iedges = edge(Igray,'Sobel');
 
 % Original line image
-figure(2), imshow(Iedges)
+figure(4), imshow(Iedges)
 hold on
 
 % Detect Lines by hough transform
@@ -253,6 +241,7 @@ outputR = Red > 140 & Red < 180 & Green > 20 & Green < 60 & Blue > 30 & Blue < 8
 
 % Set cropping of red sticker detection to define the piece we care about
 % Note, this cropping only allows for correction within the board square.
+% Stickers outside of board square could be for separate peice
 Rcrop = imcrop(outputR,[min(IntersectBL(1),IntersectTL(1)),...
     min(IntersectTL(2),IntersectTR(2)), max(IntersectTR(1),IntersectBR(1))...
     - (min(IntersectBL(1),IntersectTL(1))), max(IntersectBR(2),IntersectBL(2))...
@@ -281,19 +270,32 @@ hold on
 plot(StickerTL(1),StickerTL(2),'g*','MarkerSize',20)
 plot(StickerTR(1),StickerTR(2),'g*','MarkerSize',20)
 
-%% Find relavent locations of stickers referenced from board corners using bilinear interp
+%% Define center of piece from two stickers (assume piece is facing forward)
 
-% could transform the image of the board square into a perfect square, but will instead use
-% bilinear interp for an arbitrary quadrilateral
+Distvector = [(StickerTR(1) - StickerTL(1));(StickerTR(2) - StickerTL(2))];
+slopevector = Distvector / max(Distvector);
+
+% Perpendicular distance from line between two stickers and center of piece is 1 cm (distance may
+% change for permanent implementation of stickers)
+
+% pixel/cm conversion rate = 8 pixel/cm
+
+piecedist = 1*(8); %cm*(pixel/cm)
+
+% define center of piece. (perpendicular distance from sticker line to
+% center can be edited above)
+Piecepixelloc = StickerTL + (1/2)*Distvector + piecedist*[-slopevector(2);slopevector(1)];
+plot(Piecepixelloc(1),Piecepixelloc(2),'b*','MarkerSize',20)
+
+%% Find relavent locations of stickers referenced from board corners using bilinear interp
 
 % Define the polygon in pixel cordinates, and each x,y cordinate...
 px = [IntersectBL(1), IntersectBR(1), IntersectTR(1), IntersectTL(1)];
 py = [IntersectBL(2), IntersectBR(2), IntersectTR(2), IntersectTL(2)];
 
-% Define points to convert to L,M coordinates (include px and py for
-% testing purposes)
-Xpixel = [px, StickerTL(1), StickerTR(1)];
-Ypixel = [py, StickerTL(2), StickerTR(2)];
+% Define points to convert to L,M coordinates
+Xpixel = [StickerTL(1), StickerTR(1), Piecepixelloc(1)];
+Ypixel = [StickerTL(2), StickerTR(2), Piecepixelloc(2)];
 
 % Y transformation
 imageheight = 640;
@@ -321,25 +323,56 @@ end
 
 %% Define XYZPR Locations of stickers from L,M coordinates
 
-% Define XYZPR of board corners. In actual function, will have to identify
-% these four XYZPR points from structure rather than calling them out,
-% (alphabetical for loop?)
+% Define XYZPR of relavent board corners. For indexing of board coners see
+% 'InterpolatingLines' function
 
-XYZPRBL = Board_intersections.D3.xyz; % XYZPR BottomLeft
-XYZPRTL = Board_intersections.D4.xyz; % XYZPR TopLeft
-XYZPRBR = Board_intersections.E3.xyz; % XYZPR BottomRight
-XYZPRTR = Board_intersections.E4.xyz; % XYZPR TopRight
+BLcornerindex = boardsquare;
+
+TLcornerindex = boardsquare;
+TLcornerindex(2) = TLcornerindex(2) + 1;
+
+Alphabet = 'ABCDEFGHI';
+Letters = Alphabet([1:9]);
+
+BRcornerindex = boardsquare;
+for i = 1:length(Letters)
+    if BRcornerindex(1) == Letters(i)
+        BRcornerindex(1) = Letters(i + 1);
+        break
+    end
+end
+
+TRcornerindex = BRcornerindex;
+TRcornerindex(2) = TRcornerindex(2) + 1;
+
+XYZPRBL = Board_intersections.(BLcornerindex).xyz; % XYZPR BottomLeft
+XYZPRTL = Board_intersections.(TLcornerindex).xyz; % XYZPR TopLeft
+XYZPRBR = Board_intersections.(BRcornerindex).xyz; % XYZPR BottomRight
+XYZPRTR = Board_intersections.(TRcornerindex).xyz; % XYZPR TopRight
 
 % Use bilinear interp coordinates to define XYZPR of stickers
-StickerTL_pixelxy = [L(5),M(5)]
-StickerTR_pixelxy = [L(6),M(6)]
+StickerTL_LM = [L(1),M(1)]
+StickerTR_LM = [L(2),M(2)]
+Piece_LM = [L(3),M(3)]
+
 
 for i = 1:5
-    XYZPRSTICKERTL(i) = [1-L(5),L(5)-0]*[XYZPRBL(i),XYZPRTL(i);XYZPRBR(i),XYZPRTR(i)]*[1-M(5);M(5)-0];
+    XYZPRSTICKERTL(i) = [1-L(1),L(1)-0]*[XYZPRBL(i),XYZPRTL(i);XYZPRBR(i),XYZPRTR(i)]*[1-M(1);M(1)-0];
 end
 
 for i = 1:5
-    XYZPRSTICKERTR(i) = [1-L(6),L(6)-0]*[XYZPRBL(i),XYZPRTL(i);XYZPRBR(i),XYZPRTR(i)]*[1-M(6);M(6)-0];
+    XYZPRSTICKERTR(i) = [1-L(2),L(2)-0]*[XYZPRBL(i),XYZPRTL(i);XYZPRBR(i),XYZPRTR(i)]*[1-M(2);M(2)-0];
 end
 
-%% Correct for chess piece placement
+for i = 1:5
+    XYZPRPiece(i) = [1-L(3),L(3)-0]*[XYZPRBL(i),XYZPRTL(i);XYZPRBR(i),XYZPRTR(i)]*[1-M(3);M(3)-0];
+end
+
+% Define 'ideal' L,M values for displacement correction
+ideal = [0.50,0.50];
+for i = 1:5
+    XYZPRPieceIdeal(i) = [1-ideal(1),ideal(1)-0]*[XYZPRBL(i),XYZPRTL(i)...
+        ;XYZPRBR(i),XYZPRTR(i)]*[1-ideal(2);ideal(2)-0];
+end
+
+Piece_LM = [L(3),M(3)];

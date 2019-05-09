@@ -1,32 +1,16 @@
-% Duplicate of CorrectPosition Function, optimized to board position D3
-% for testing purposes
-
-% In actual function, this will not be a thing either
-clc
-clear all
-close all
-[Gameboard, Gamesettings, Chessboard, Board_intersections]  =  InitializeGame('Board_Locations', 'Gamesettings');
-
-
-% In actual function 'old' will be an input variable
-old = 'D3';
-
-%Establish which piece you're trying to move.
-piecenumber = 6; % Pawn testing
-%%
-
-% Setting up webcam, will need to be moved to separate function, possibly
-% InitializeGame function
-
-% use delete(cam) in command line if already registered
+%% Process image function (ROTATION)
+% Does not include any robot movement functions, only image processing
+% see 'CorrectPositionTEST' for combo of this function and CorrectPosition
+function [XYZPRPiece,Slopediff] = ProcessImageRot(Chessboard,Gameboard,Gamesettings,Board_intersections,boardsquare)
+% cam needs to be called within function, MATLAB cannot import objects of
+% class 'camera'
 cam = webcam('HD Pro Webcam C920');
-
+I = snapshot(cam);
 % cam.FocusMode = 'auto';
 cam.FocusMode = 'manual';
 cam.Focus = 15; 
 % NOTE: Closest camera focus is not 0, it is 125, medium range is around 30
 % 05-25 is good focus for current elevated plane in movepawn
-I = snapshot(cam);
 figure(1), imshow(I)
 
 %% Detect relevant edges and corners
@@ -339,14 +323,32 @@ end
 
 %% Define XYZPR Locations of stickers from L,M coordinates
 
-% Define XYZPR of board corners. In actual function, will have to identify
-% these four XYZPR points from structure rather than calling them out,
-% (alphabetical for loop?)
+% Define XYZPR of relavent board corners. For indexing of board coners see
+% 'InterpolatingLines' function
 
-XYZPRBL = Board_intersections.D3.xyz; % XYZPR BottomLeft
-XYZPRTL = Board_intersections.D4.xyz; % XYZPR TopLeft
-XYZPRBR = Board_intersections.E3.xyz; % XYZPR BottomRight
-XYZPRTR = Board_intersections.E4.xyz; % XYZPR TopRight
+BLcornerindex = boardsquare;
+
+TLcornerindex = boardsquare;
+TLcornerindex(2) = TLcornerindex(2) + 1;
+
+Alphabet = 'ABCDEFGHI';
+Letters = Alphabet([1:9]);
+
+BRcornerindex = boardsquare;
+for i = 1:length(Letters)
+    if BRcornerindex(1) == Letters(i)
+        BRcornerindex(1) = Letters(i + 1);
+        break
+    end
+end
+
+TRcornerindex = BRcornerindex;
+TRcornerindex(2) = TRcornerindex(2) + 1;
+
+XYZPRBL = Board_intersections.(BLcornerindex).xyz; % XYZPR BottomLeft
+XYZPRTL = Board_intersections.(TLcornerindex).xyz; % XYZPR TopLeft
+XYZPRBR = Board_intersections.(BRcornerindex).xyz; % XYZPR BottomRight
+XYZPRTR = Board_intersections.(TRcornerindex).xyz; % XYZPR TopRight
 
 % Use bilinear interp coordinates to define XYZPR of stickers
 StickerTL_LM = [L(1),M(1)]
@@ -366,84 +368,9 @@ for i = 1:5
     XYZPRPiece(i) = [1-L(3),L(3)-0]*[XYZPRBL(i),XYZPRTL(i);XYZPRBR(i),XYZPRTR(i)]*[1-M(3);M(3)-0];
 end
 
-% Define 'ideal' L,M values for displacement correction
-ideal = [0.50,0.50];
-for i = 1:5
-    XYZPRPieceIdeal(i) = [1-ideal(1),ideal(1)-0]*[XYZPRBL(i),XYZPRTL(i)...
-        ;XYZPRBR(i),XYZPRTR(i)]*[1-ideal(2);ideal(2)-0];
-end
-
-%% Error / Testing
-errorifcentered = Gameboard.D3.xyz - XYZPRPiece
-
-stop1 = [Gameboard.(old).xyz(1) Gameboard.(old).xyz(2) Gameboard.(old).xyz(3)+200 ...
-    Gameboard.(old).xyz(4) Gameboard.(old).xyz(5)];
-ScorSetXYZPR(stop1);
-
-x=Gamesettings(piecenumber,1);
-
-%% Correct for chess piece placement
-
 % Find slopes, y axis is flipped here from MATLAB indexing
 SlopeStickers = -(StickerTR(2) - StickerTL(2))/(StickerTR(1) - StickerTL(1));
 SlopeCorners = -(IntersectTR(2) - IntersectTL(2))/(IntersectTR(1) - IntersectTL(1));
 
-%% Rotational Displacement Correction
-
-% Slope difference to pitch conversion factor
-P2S = 0.95; % pitch value per slope
-
 % Slope difference calculation
 Slopediff = SlopeCorners - SlopeStickers;
-
-if abs(Slopediff) > 0.01 % Rotational correction needed
-    
-    ScorSetGripper(x+5);
-    % Move arm to location of image processed point
-    pick1=[XYZPRPiece(1) XYZPRPiece(2) XYZPRPiece(3)+Gamesettings(piecenumber,2)-2 ...
-        XYZPRPiece(4) XYZPRPiece(5)];
-    ScorWaitForMove;
-    ScorSetXYZPR(pick1);
-    ScorWaitForMove;
-    ScorSetGripper(x);
-    ScorWaitForMove;
-    ScorSetXYZPR(stop1);
-    % Correct for rotation
-    pick2=[XYZPRPiece(1) XYZPRPiece(2) XYZPRPiece(3)+Gamesettings(piecenumber,2)-2 ...
-        XYZPRPiece(4) XYZPRPiece(5)-P2S*Slopediff];
-    ScorWaitForMove;
-    ScorSetXYZPR(pick2);
-    ScorWaitForMove;
-    ScorSetGripper(x+3);
-    ScorWaitForMove;
-    % Return arm to original spot
-    ScorSetXYZPR(stop1);
-end
-
-%% Planar Displacement Correction
-
-if Piece_LM(1) < 0.40 || Piece_LM(1) > 0.60 || Piece_LM(2) < 0.45 || Piece_LM(2) > 0.60
-    % Move piece to proper M,L coordinates
-    ScorWaitForMove;
-    ScorSetGripper(x+5);
-    % Move arm to location of image processed point
-    pick1=[XYZPRPiece(1) XYZPRPiece(2) XYZPRPiece(3)+Gamesettings(piecenumber,2)-2 ...
-        XYZPRPiece(4) XYZPRPiece(5)];
-    ScorWaitForMove;
-    ScorSetXYZPR(pick1);
-    ScorWaitForMove;
-    ScorSetGripper(x);
-    ScorWaitForMove;
-    ScorSetXYZPR(stop1);
-    % Correct for displacement
-    pick2=[XYZPRPieceIdeal(1) XYZPRPieceIdeal(2)...
-        (XYZPRPieceIdeal(3)+Gamesettings(piecenumber,2)-2)...
-        XYZPRPieceIdeal(4) XYZPRPieceIdeal(5)];
-    ScorWaitForMove;
-    ScorSetXYZPR(pick2);
-    ScorWaitForMove;
-    ScorSetGripper(x+3);
-    ScorWaitForMove;
-    % Return arm to original spot
-    ScorSetXYZPR(stop1);
-end
