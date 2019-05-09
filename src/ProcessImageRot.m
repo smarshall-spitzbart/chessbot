@@ -62,7 +62,7 @@ for i = 1:length(lines)
     Sum(linInd) = Sum(linInd) + 1;      
 end
  [intersect.y.locs,intersect.x.locs] = find(Sum == 2);
- % plot(intersect.x.locs,intersect.y.locs, 'g*');
+%  plot(intersect.x.locs,intersect.y.locs, 'g*');
 
 %% Cropping for line intervals
 % cropping tool
@@ -285,7 +285,7 @@ piecedist = 1*(8); %cm*(pixel/cm)
 % define center of piece. (perpendicular distance from sticker line to
 % center can be edited above)
 Piecepixelloc = StickerTL + (1/2)*Distvector + piecedist*[-slopevector(2);slopevector(1)];
-plot(Piecepixelloc(1),Piecepixelloc(2),'b*','MarkerSize',20)
+% plot(Piecepixelloc(1),Piecepixelloc(2),'b*','MarkerSize',20)
 
 %% Find relavent locations of stickers referenced from board corners using bilinear interp
 
@@ -351,9 +351,9 @@ XYZPRBR = Board_intersections.(BRcornerindex).xyz; % XYZPR BottomRight
 XYZPRTR = Board_intersections.(TRcornerindex).xyz; % XYZPR TopRight
 
 % Use bilinear interp coordinates to define XYZPR of stickers
-StickerTL_LM = [L(1),M(1)]
-StickerTR_LM = [L(2),M(2)]
-Piece_LM = [L(3),M(3)]
+% StickerTL_LM = [L(1),M(1)]
+% StickerTR_LM = [L(2),M(2)]
+% Piece_LM = [L(3),M(3)]
 
 
 for i = 1:5

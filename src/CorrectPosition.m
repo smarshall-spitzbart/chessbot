@@ -1,7 +1,7 @@
 % Detects location of chess piece after it has been placed and gripper has
 % been released (see MovePawn function)
 
-% [confirm] = CorrectPosition(Chessboard,Gameboard,Gamesettings,Board_intersections,'D2')
+% [confirm] = CorrectPosition(Chessboard,Gameboard,Gamesettings,Board_intersections,'D3')
 
 function [confirm] = CorrectPosition(Chessboard,Gameboard,Gamesettings,Board_intersections,boardsquare)
 
