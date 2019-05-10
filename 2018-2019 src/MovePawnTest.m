@@ -1,3 +1,4 @@
+%Duplicate of MovePawn used to isolate when there is an issue.
 stop1=[Gameboard2.(old).xyz(1) Gameboard2.(old).xyz(2) Gameboard2.(old).xyz(3)+150 ...
     Gameboard2.(old).xyz(4) Gameboard2.(old).xyz(5)];
 ScorSetXYZPR(stop1);
