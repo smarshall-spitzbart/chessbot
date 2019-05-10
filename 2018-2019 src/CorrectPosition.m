@@ -1,131 +1,85 @@
 % Detects location of chess piece after it has been placed and gripper has
 % been released (see MovePawn function)
 
-function [confirm] = CorrectPosition(new,Chessboard,Gameboard,Gamesettings)
+% [confirm] = CorrectPosition(Chessboard,Gameboard,Gamesettings,Board_intersections,'D3')
 
-% Setting up webcam, will need to be moved to separate function, possibly
-% InitializeGame function
+function [confirm] = CorrectPosition(Chessboard,Gameboard,Gamesettings,Board_intersections,boardsquare)
 
-% use delete(cam) in command line if already registered
-cam = webcam('HD Pro Webcam C920');
+%Establish which piece you're trying to move
+piecenumber = Chessboard.(boardsquare).piece;
+%%
+% call robot arm to initial placement
+initstop = [Gameboard.(boardsquare).xyz(1) Gameboard.(boardsquare).xyz(2) Gameboard.(boardsquare).xyz(3)+200 ...
+    Gameboard.(boardsquare).xyz(4) Gameboard.(boardsquare).xyz(5)];
+ScorSetXYZPR(initstop);
 
-% cam.FocusMode = 'auto';
-cam.FocusMode = 'manual';
-cam.Focus = 15; 
+x=Gamesettings(piecenumber,1);
 
-% NOTE: Closest camera focus is not 0, it is 125, medium range is around 30
-% 05-25 is good focus for current elevated plane in movepawn
-I = snapshot(cam);
-figure(1), imshow(I)
+%% Correct for chess piece placement
+stop1 = [Gameboard.(boardsquare).xyz(1) Gameboard.(boardsquare).xyz(2) Gameboard.(boardsquare).xyz(3)+200 ...
+    Gameboard.(boardsquare).xyz(4) Gameboard.(boardsquare).xyz(5)];
+%% Rotational Displacement Correction
 
-%% Detect board corners
+% Slope difference to pitch conversion factor
+P2S = 0.95; % pitch value per slope
 
-% Detect square corners using hough transform
-Igray = rgb2gray(I);
-Iedges = edge(Igray,'Sobel');
+% Image process for rotation
+[XYZPRPiece,Slopediff] = ProcessImageRot(Chessboard,Gameboard,Gamesettings,Board_intersections,boardsquare);
 
-% Original line image
-figure(2), imshow(Iedges)
-hold on
-
-% Detect Lines by hough transform
-[H, t, r] = hough(Iedges, 'RhoResolution',1,'Theta',-90:0.01:89.99); % sets rho and theta resolution
-peaks = houghpeaks(H, 12); % 8 is the number of lines needed in the image
-lines = houghlines(Iedges, t, r, peaks, 'FillGap', 100);
-
-% Plot lines for visualization
-for i = 1:length(lines)
-    plot([lines(i).point1(1) lines(i).point2(1)],[lines(i).point1(2) lines(i).point2(2)], 'r-');
+if abs(Slopediff) > 0.01 % Rotational correction needed
+    
+    ScorSetGripper(x+5);
+    % Move arm to location of image processed point
+    pick1=[XYZPRPiece(1) XYZPRPiece(2) XYZPRPiece(3)+Gamesettings(piecenumber,2)-2 ...
+        XYZPRPiece(4) XYZPRPiece(5)];
+    ScorWaitForMove;
+    ScorSetXYZPR(pick1);
+    ScorWaitForMove;
+    ScorSetGripper(x);
+    ScorWaitForMove;
+    ScorSetXYZPR(stop1);
+    % Correct for rotation
+    pick2=[XYZPRPiece(1) XYZPRPiece(2) XYZPRPiece(3)+Gamesettings(piecenumber,2)-2 ...
+        XYZPRPiece(4) XYZPRPiece(5)-P2S*Slopediff];
+    ScorWaitForMove;
+    ScorSetXYZPR(pick2);
+    ScorWaitForMove;
+    ScorSetGripper(x+3);
+    ScorWaitForMove;
+    % Return arm to original spot
+    ScorSetXYZPR(stop1);
+    ScorWaitForMove;
 end
 
-% Detect intersection points from each line
-% First denote a 1 for each pixel that is a part of any one line
-% Any pixel that has an end sum of 2 is an intersection pixel
-Sum = zeros(size(Iedges));
-for i = 1:length(lines)
-    x1 = lines(i).point1(1);
-    y1 = lines(i).point1(2);
-    x2 = lines(i).point2(1);
-    y2 = lines(i).point2(2);
+%% Planar Displacement Correction
+
+% Image process for displacement
+[XYZPRPiece,XYZPRPieceIdeal,Piece_LM] = ProcessImageDisp(Chessboard,Gameboard,Gamesettings,Board_intersections,boardsquare)
+
+if Piece_LM(1) < 0.40 || Piece_LM(1) > 0.60 || Piece_LM(2) < 0.45 || Piece_LM(2) > 0.60
     
-    xcomp = linspace(x1, x2, max([abs(x2-x1),abs(y2-y1)]));
-    ycomp = interp1([x1 x2],[y1 y2], xcomp);
-    xcomp = round(xcomp);
-    ycomp = round(ycomp);
-        
-    for n = 1:length(xcomp)
-        xcompstore(i,n) = xcomp(n);
-        ycompstore(i,n) = ycomp(n);
-    end
-    
-    linInd = sub2ind(size(Iedges), ycomp, xcomp);
-    Sum(linInd) = Sum(linInd) + 1;      
+    % Move piece to proper M,L coordinates
+    ScorSetGripper(x+5);
+    % Move arm to location of image processed point
+    pick1=[XYZPRPiece(1) XYZPRPiece(2) XYZPRPiece(3)+Gamesettings(piecenumber,2)-2 ...
+        XYZPRPiece(4) XYZPRPiece(5)];
+    ScorWaitForMove;
+    ScorSetXYZPR(pick1);
+    ScorWaitForMove;
+    ScorSetGripper(x);
+    ScorWaitForMove;
+    ScorSetXYZPR(stop1);
+    % Correct for displacement
+    pick2=[XYZPRPieceIdeal(1) XYZPRPieceIdeal(2)...
+        (XYZPRPieceIdeal(3)+Gamesettings(piecenumber,2)-2)...
+        XYZPRPieceIdeal(4) XYZPRPieceIdeal(5)];
+    ScorWaitForMove;
+    ScorSetXYZPR(pick2);
+    ScorWaitForMove;
+    ScorSetGripper(x+3);
+    ScorWaitForMove;
+    % Return arm to original spot
+    ScorSetXYZPR(stop1);
+    ScorWaitForMove;
 end
-[intersect_y,intersect_x] = find(Sum == 2);
-plot(intersect_x,intersect_y, 'g*');
-
-%% Detect Chess piece Dots
-
-Red = I(:,:,1);
-Green = I(:,:,2);
-Blue = I(:,:,3);
-
-% Command used to display individual pixel colors (color adjustment
-% purposes)
-% a = impixel(I)
-
-% define color levels for red stickers (needs adjustments for different
-% rooms/lighting/robot arm height)
-outputR = Red > 120 & Red < 150 & Green > 10 & Green < 40 & Blue > 30 & Blue < 50;
-
-% cropping tool
-% [J, rect] = imcrop(I);
-
-% Set cropping of image if needed
-% Rcrop = imcrop(outputR,[2318 1107 804 870]); %[xmin ymin width height]
-
-% filter image
-outputR2 = imfill(outputR,'holes');
-outputR3 = bwmorph(outputR2,'dilate',3);
-
-% Caculate/display centroids for each sticker type
-statsR = regionprops(outputR3);
-
-centroidsR = cat(1, statsR.Centroid);
-hold on
-
-% Correct for cropping of red channel (if needed)
-% centroidsR(:,1) = centroidsR(:,1) + 2318;
-% centroidsR(:,2) = centroidsR(:,2) + 1107;
-
-%% Calculate distances
-
-% Define top left sticker centroid
-StickerTL = [centroidsR(1,1); centroidsR(1,2)];
-
-% Define top right sticker centroid
-StickerTR = [centroidsR(2,1); centroidsR(2,2)];
-
-% Current config = arbitrary, need to define heights and board spots
-
-% Define approprite top left board corner
-BoardTL = [intersect_x(12);intersect_y(12)];
-
-% Define appropriate top right board corner
-BoardTR = [intersect_x(19);intersect_y(19)];
-
-% Calculate distances from sticker centroid to appropriate corners
-
-TLDIST = norm(BoardTL - StickerTL)
-TRDIST = norm(BoardTR - StickerTR)
-
-plot(StickerTL(1),StickerTL(2),'g*')
-plot(StickerTR(1),StickerTR(2),'g*')
-
-% Board corner indexing test % NOTE: board points are indexed starting top
-% left, moving downward. But can be funky sometimes
-% plot(intersect_x(19),intersect_y(19), 'm*','MarkerSize',20);
-
-confirm=true
-
-
+confirm = true
