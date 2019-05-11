@@ -7,16 +7,14 @@ function [confirm] = CorrectPosition(Chessboard,Gameboard,Gamesettings,Board_int
 
 %Establish which piece you're trying to move
 piecenumber = Chessboard.(boardsquare).piece;
-%%
-% call robot arm to initial placement
-initstop = [Gameboard.(boardsquare).xyz(1) Gameboard.(boardsquare).xyz(2) Gameboard.(boardsquare).xyz(3)+200 ...
-    Gameboard.(boardsquare).xyz(4) Gameboard.(boardsquare).xyz(5)];
-ScorSetXYZPR(initstop);
 
 x=Gamesettings(piecenumber,1);
 
 %% Correct for chess piece placement
 stop1 = [Gameboard.(boardsquare).xyz(1) Gameboard.(boardsquare).xyz(2) Gameboard.(boardsquare).xyz(3)+200 ...
+    Gameboard.(boardsquare).xyz(4) Gameboard.(boardsquare).xyz(5)];
+
+stop_inter = [Gameboard.(boardsquare).xyz(1) Gameboard.(boardsquare).xyz(2) Gameboard.(boardsquare).xyz(3)+75 ...
     Gameboard.(boardsquare).xyz(4) Gameboard.(boardsquare).xyz(5)];
 %% Rotational Displacement Correction
 
@@ -37,7 +35,7 @@ if abs(Slopediff) > 0.01 % Rotational correction needed
     ScorWaitForMove;
     ScorSetGripper(x);
     ScorWaitForMove;
-    ScorSetXYZPR(stop1);
+    ScorSetXYZPR(stop_inter);
     % Correct for rotation
     pick2=[XYZPRPiece(1) XYZPRPiece(2) XYZPRPiece(3)+Gamesettings(piecenumber,2)-2 ...
         XYZPRPiece(4) XYZPRPiece(5)-P2S*Slopediff];
@@ -68,7 +66,7 @@ if Piece_LM(1) < 0.40 || Piece_LM(1) > 0.60 || Piece_LM(2) < 0.45 || Piece_LM(2)
     ScorWaitForMove;
     ScorSetGripper(x);
     ScorWaitForMove;
-    ScorSetXYZPR(stop1);
+    ScorSetXYZPR(stop_inter);
     % Correct for displacement
     pick2=[XYZPRPieceIdeal(1) XYZPRPieceIdeal(2)...
         (XYZPRPieceIdeal(3)+Gamesettings(piecenumber,2)-2)...

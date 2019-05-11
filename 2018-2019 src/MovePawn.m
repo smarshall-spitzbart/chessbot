@@ -1,13 +1,15 @@
 %%Moves a piece from one space to another.
 
-function [confirm] = MovePawn(old,new,Chessboard,Gameboard,Gamesettings)
+function [confirm] = MovePawn(old,new,Gameboard,Gamesettings,Chessboard,Board_intersections)
 %Set the location of the robot to x,y position of the old piece 200 mm above the board.  
 stop1 = [Gameboard.(old).xyz(1) Gameboard.(old).xyz(2) Gameboard.(old).xyz(3)+200 ...
     Gameboard.(old).xyz(4) Gameboard.(old).xyz(5)];
 ScorSetXYZPR(stop1);
-%Shawn's Code
-%
-%
+
+%Correct position of 'old' placement if needed (comment out if cam not
+%attached)
+[~] = CorrectPosition(Chessboard,Gameboard,Gamesettings,Board_intersections,old);
+
 %Establish which piece you're trying to move.
 piecenumber=Chessboard.(old).piece;
 %Set a parameter for the diameter of the piece.
@@ -40,8 +42,6 @@ ScorWaitForMove;
 %Release the piece
 ScorSetGripper(x+3);
 ScorWaitForMove;
-%Shawn will add CorrectPosition command here, possibly will move to
-%after the bot has moved up 200mm
 ScorSetXYZPR(stop2);
 %ScorWaitForMove;
 confirm=true

@@ -8,4 +8,9 @@ Gamesettings = temp.Gamesettings;
 Chessboard = ResetChessboard();
 Board_intersections = InterpolatingLines();
 
+% Initialize web cam auto exposure if needed 
+% cam = webcam('HD Pro Webcam C920');
+% I = snapshot(cam);
+% delete(cam)
+
 %[Gameboard, Gamesettings, Chessboard, Board_intersections]  =  InitializeGame('Board_Locations', 'Gamesettings')
